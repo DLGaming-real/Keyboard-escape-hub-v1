@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (PERFECT ADJUSTED VERSION)
+-- Keyboard escape hub v1 (THE ULTIMATE ALL-IN-ONE FIX)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -12,7 +12,7 @@ MainFrame.Name = "KeyboardEscapeHub"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
 MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 320, 0, 260)
+MainFrame.Size = UDim2.new(0, 320, 0, 360) -- Größe angepasst, damit alles Platz hat
 MainFrame.Active = true
 MainFrame.Draggable = true
 
@@ -26,7 +26,7 @@ Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 14
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Schließen (X) - Oben Rechts
+-- Schließen (X)
 CloseBtn.Parent = MainFrame
 CloseBtn.Size = UDim2.new(0, 35, 0, 35)
 CloseBtn.Position = UDim2.new(0.85, 0, 0.02, 0)
@@ -37,7 +37,7 @@ CloseBtn.Font = Enum.Font.SourceSansBold
 CloseBtn.TextSize = 16
 CloseBtn.ZIndex = 5
 
--- Minimieren (_) - Oben Rechts
+-- Minimieren (_)
 MinimizeBtn.Parent = MainFrame
 MinimizeBtn.Size = UDim2.new(0, 35, 0, 35)
 MinimizeBtn.Position = UDim2.new(0.72, 0, 0.02, 0)
@@ -63,33 +63,35 @@ local SpeedInput = Instance.new("TextBox")
 local SpeedLabel = Instance.new("TextLabel")
 local FlySpeedInput = Instance.new("TextBox")
 local ToggleFlyBtn = Instance.new("TextButton")
+local ToggleClickTpBtn = Instance.new("TextButton")
+local ToggleInvisibleBtn = Instance.new("TextButton")
 local ToggleAntiAfkBtn = Instance.new("TextButton")
 
 local function styleElement(el, yPos, color)
     el.Parent = MainFrame
     el.Position = UDim2.new(0.1, 0, 0, yPos)
-    el.Size = UDim2.new(0.8, 0, 0, 40)
+    el.Size = UDim2.new(0.8, 0, 0, 35)
     el.BackgroundColor3 = color
     el.TextColor3 = Color3.fromRGB(255, 255, 255)
     el.Font = Enum.Font.SourceSansBold
     el.TextSize = 14
 end
 
--- GESCHWINDIGKEIT DIREKT EINGEBEN (Kein Drücken nötig)
-styleElement(SpeedInput, 60, Color3.fromRGB(51, 65, 85))
+-- 1. TEMPO (Sofort-Änderung beim Tippen)
+styleElement(SpeedInput, 70, Color3.fromRGB(51, 65, 85))
 SpeedInput.Text = "16"
-SpeedInput.PlaceholderText = "Tempo (1 - 1000000000)"
+SpeedInput.PlaceholderText = "Tempo tippen..."
 
 SpeedLabel.Parent = SpeedInput
 SpeedLabel.Size = UDim2.new(1, 0, 0, 20)
 SpeedLabel.Position = UDim2.new(0, 0, -0.5, 0)
-SpeedLabel.Text = "Tempo tippen (ändert sich sofort):"
+SpeedLabel.Text = "Tempo (ändert sich sofort beim Tippen):"
 SpeedLabel.TextColor3 = Color3.fromRGB(148, 163, 184)
 SpeedLabel.BackgroundTransparency = 1
 SpeedLabel.Font = Enum.Font.SourceSansBold
-SpeedLabel.TextSize = 12
+SpeedLabel.TextSize = 11
 
--- FLY MIT WASD (Genauso wie oben verlangt)
+-- 2. FLY (Button + Speed links daneben)
 styleElement(ToggleFlyBtn, 120, Color3.fromRGB(14, 165, 233))
 ToggleFlyBtn.Text = "Fliegen (WASD)"
 
@@ -102,37 +104,75 @@ FlySpeedInput.Text = "70"
 FlySpeedInput.Font = Enum.Font.SourceSans
 FlySpeedInput.TextSize = 14
 
--- ANTI-AFK LAUFBAND ANIMATION
-styleElement(ToggleAntiAfkBtn, 180, Color3.fromRGB(22, 163, 74))
+-- 3. CLICK TELEPORT
+styleElement(ToggleClickTpBtn, 170, Color3.fromRGB(168, 85, 247))
+ToggleClickTpBtn.Text = "Click Teleport: AUS"
+
+-- 4. UNSICHTBAR
+styleElement(ToggleInvisibleBtn, 220, Color3.fromRGB(234, 179, 8))
+ToggleInvisibleBtn.Text = "Unsichtbar machen"
+
+-- 5. ANTI-AFK (Laufband)
+styleElement(ToggleAntiAfkBtn, 270, Color3.fromRGB(22, 163, 74))
 ToggleAntiAfkBtn.Text = "Anti-AFK (Laufband): AUS"
 
-local player = game.Players.LocalPlayer
 
--- GUI Steuerung
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- GUI Aktionen
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- TEMPO ÄNDERT SICH BEIM TIPPEN SOFORT
+-- TEMPO BEIM TIPPEN
 SpeedInput:GetPropertyChangedSignal("Text"):Connect(function()
     local val = tonumber(SpeedInput.Text)
     if val then
         local char = player.Character
         local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed = val
-        end
+        if hum then hum.WalkSpeed = val end
     end
 end)
 
--- Immer aufpassen, falls der Charakter neu spawnt, dass die eingestellte Geschwindigkeit bleibt
 player.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid", 5)
     local val = tonumber(SpeedInput.Text)
     if hum and val then hum.WalkSpeed = val end
 end)
 
--- FLIEGEN (Stabil über WASD/Steuerkreuz)
+-- CLICK TELEPORT
+local clickTpEnabled = false
+ToggleClickTpBtn.MouseButton1Click:Connect(function()
+    clickTpEnabled = not clickTpEnabled
+    ToggleClickTpBtn.Text = clickTpEnabled and "Click Teleport: AN" or "Click Teleport: AUS"
+end)
+
+mouse.Button1Down:Connect(function()
+    if clickTpEnabled then
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            char.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p + Vector3.new(0, 3, 0))
+        end
+    end
+end)
+
+-- UNSICHTBARKEIT
+local invisible = false
+ToggleInvisibleBtn.MouseButton1Click:Connect(function()
+    local char = player.Character
+    if char then
+        invisible = not invisible
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") or part:IsA("Decal") then
+                if part.Name ~= "HumanoidRootPart" then part.Transparency = invisible and 1 or 0 end
+            end
+        end
+        ToggleInvisibleBtn.Text = invisible and "Unsichtbar: AN" or "Unsichtbar machen"
+    end
+end)
+
+-- WASD FLIEGEN
 local flying = false
 local bv, bg
 ToggleFlyBtn.MouseButton1Click:Connect(function()
@@ -169,7 +209,7 @@ ToggleFlyBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ANTI-AFK MIT LAUFBAND-EFFEKT (Bewegt Beine im Stand + Anti Kick)
+-- ANTI AFK LAUFBAND
 local antiAfk = false
 local currentTrack
 ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
@@ -188,7 +228,7 @@ ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
                 currentTrack = hum:FindFirstChildOfClass("Animator"):LoadAnimation(id)
                 currentTrack.Looped = true
                 currentTrack:Play()
-                currentTrack:AdjustSpeed(4) -- Macht die Beine extraschnell fürs Laufband-Aussehen
+                currentTrack:AdjustSpeed(4)
             end
         end
     else
@@ -199,7 +239,7 @@ ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Anti-Kick Signal zusätzlich im Hintergrund
+-- Anti Kick im Hintergrund
 player.Idled:Connect(function()
     local vu = game:GetService("VirtualUser")
     vu:CaptureController()
