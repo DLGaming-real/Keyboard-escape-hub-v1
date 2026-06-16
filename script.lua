@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (STUDIO FLY & INSTANT SPEED EDITION)
+-- Keyboard escape hub v1 (PERFECT CLASSIC EDITION)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -12,11 +12,10 @@ MainFrame.Name = "KeyboardEscapeHub"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
 MainFrame.Position = UDim2.new(0.3, 0, 0.1, 0)
-MainFrame.Size = UDim2.new(0, 320, 0, 390)
+MainFrame.Size = UDim2.new(0, 320, 0, 430)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
--- Titel Leiste
 Title.Parent = MainFrame
 Title.Size = UDim2.new(1, 0, 0, 45)
 Title.BackgroundColor3 = Color3.fromRGB(30, 41, 59)
@@ -26,7 +25,6 @@ Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 14
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Schließen (X)
 CloseBtn.Parent = MainFrame
 CloseBtn.Size = UDim2.new(0, 35, 0, 35)
 CloseBtn.Position = UDim2.new(0.85, 0, 0.02, 0)
@@ -37,7 +35,6 @@ CloseBtn.Font = Enum.Font.SourceSansBold
 CloseBtn.TextSize = 16
 CloseBtn.ZIndex = 5
 
--- Minimieren (_)
 MinimizeBtn.Parent = MainFrame
 MinimizeBtn.Size = UDim2.new(0, 35, 0, 35)
 MinimizeBtn.Position = UDim2.new(0.72, 0, 0.02, 0)
@@ -48,7 +45,6 @@ MinimizeBtn.Font = Enum.Font.SourceSansBold
 MinimizeBtn.TextSize = 16
 MinimizeBtn.ZIndex = 5
 
--- Öffnen Button
 OpenBtn.Parent = ScreenGui
 OpenBtn.Size = UDim2.new(0, 100, 0, 35)
 OpenBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -63,6 +59,7 @@ local SpeedInput = Instance.new("TextBox")
 local SpeedLabel = Instance.new("TextLabel")
 local FlySpeedInput = Instance.new("TextBox")
 local ToggleFlyBtn = Instance.new("TextButton")
+local ToggleNoClipBtn = Instance.new("TextButton")
 local ToggleClickTpBtn = Instance.new("TextButton")
 local ToggleInvisibleBtn = Instance.new("TextButton")
 local ToggleAntiAfkBtn = Instance.new("TextButton")
@@ -77,10 +74,9 @@ local function styleElement(el, yPos, color)
     el.TextSize = 14
 end
 
--- 1. TEMPO (Direkt-Erkennung beim Tippen über RunService)
+-- 1. TEMPO (Sofortige Erkennung beim Tippen)
 styleElement(SpeedInput, 80, Color3.fromRGB(51, 65, 85))
 SpeedInput.Text = "16"
-SpeedInput.PlaceholderText = "Tempo..."
 
 SpeedLabel.Parent = MainFrame
 SpeedLabel.Size = UDim2.new(0.8, 0, 0, 20)
@@ -90,11 +86,10 @@ SpeedLabel.TextColor3 = Color3.fromRGB(148, 163, 184)
 SpeedLabel.BackgroundTransparency = 1
 SpeedLabel.Font = Enum.Font.SourceSansBold
 SpeedLabel.TextSize = 12
-SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- 2. FLY BUTTON (Roblox Studio / Notruf Hamburg Style)
+-- 2. FLY (Das gute, klassische WASD-Fliegen)
 styleElement(ToggleFlyBtn, 140, Color3.fromRGB(14, 165, 233))
-ToggleFlyBtn.Text = "Fliegen (Studio Modus)"
+ToggleFlyBtn.Text = "Fliegen (WASD)"
 
 FlySpeedInput.Parent = ToggleFlyBtn
 FlySpeedInput.Size = UDim2.new(0.3, 0, 1, 0)
@@ -105,38 +100,101 @@ FlySpeedInput.Text = "70"
 FlySpeedInput.Font = Enum.Font.SourceSans
 FlySpeedInput.TextSize = 14
 
--- 3. CLICK TELEPORT
-styleElement(ToggleClickTpBtn, 200, Color3.fromRGB(168, 85, 247))
+-- 3. NO CLIP (Als eigener Button, komplett getrennt)
+styleElement(ToggleNoClipBtn, 190, Color3.fromRGB(219, 39, 119))
+ToggleNoClipBtn.Text = "No Clip (Durch Wände): AUS"
+
+-- 4. CLICK TELEPORT
+styleElement(ToggleClickTpBtn, 240, Color3.fromRGB(168, 85, 247))
 ToggleClickTpBtn.Text = "Click Teleport: AUS"
 
--- 4. UNSICHTBAR
-styleElement(ToggleInvisibleBtn, 260, Color3.fromRGB(234, 179, 8))
+-- 5. UNSICHTBAR
+styleElement(ToggleInvisibleBtn, 290, Color3.fromRGB(234, 179, 8))
 ToggleInvisibleBtn.Text = "Unsichtbar machen"
 
--- 5. ANTI-AFK LAUFBAND
-styleElement(ToggleAntiAfkBtn, 320, Color3.fromRGB(22, 163, 74))
+-- 6. ANTI-AFK LAUFBAND
+styleElement(ToggleAntiAfkBtn, 340, Color3.fromRGB(22, 163, 74))
 ToggleAntiAfkBtn.Text = "Anti-AFK (Laufband): AUS"
 
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
-local uis = game:GetService("UserInputService")
 local runService = game:GetService("RunService")
 
--- GUI Logik
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- TEMPO FIX: Erzwingt die Geschwindigkeit dauerhaft, sobald eine Zahl in der Box steht
-runService.RenderStepped:Connect(function()
+-- TEMPO SYSTEM
+SpeedInput:GetPropertyChangedSignal("Text"):Connect(function()
     local val = tonumber(SpeedInput.Text)
-    if val and player.Character then
-        local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = val end
+    if val and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+        player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = val
     end
 end)
 
--- CLICK TP
+player.CharacterAdded:Connect(function(char)
+    local hum = char:WaitForChild("Humanoid", 5)
+    local val = tonumber(SpeedInput.Text)
+    if hum and val then hum.WalkSpeed = val end
+end)
+
+-- NO CLIP SYSTEM
+local noclip = false
+ToggleNoClipBtn.MouseButton1Click:Connect(function()
+    noclip = not noclip
+    ToggleNoClipBtn.Text = noclip and "No Clip (Durch Wände): AN" or "No Clip (Durch Wände): AUS"
+end)
+
+runService.Stepped:Connect(function()
+    if noclip and player.Character then
+        for _, part in pairs(player.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+    end
+end)
+
+-- DAS ALTE, PERFEKTE CLASSIC FLY (Mit BodyVelocity und BodyGyro)
+local flying = false
+local bv, bg
+ToggleFlyBtn.MouseButton1Click:Connect(function()
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if not hrp or not hum then return end
+    
+    flying = not flying
+    ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (WASD)"
+    
+    if flying then
+        bv = Instance.new("BodyVelocity")
+        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+        bv.Velocity = Vector3.new(0, 0.1, 0)
+        bv.Parent = hrp
+        
+        bg = Instance.new("BodyGyro")
+        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bg.CFrame = hrp.CFrame
+        bg.Parent = hrp
+        
+        task.spawn(function()
+            while flying and task.wait() do
+                if player.Character and hrp and hum then
+                    local speed = tonumber(FlySpeedInput.Text) or 50
+                    bv.Velocity = hum.MoveDirection * speed
+                    bg.CFrame = hrp.CFrame
+                    if hum.MoveDirection == Vector3.new(0,0,0) then
+                        bv.Velocity = Vector3.new(0, 0.1, 0)
+                    end
+                end
+            end
+        end)
+    else
+        if bv then bv:Destroy() end
+        if bg then bg:Destroy() end
+    end
+end)
+
+-- CLICK TELEPORT
 local clickTpEnabled = false
 ToggleClickTpBtn.MouseButton1Click:Connect(function()
     clickTpEnabled = not clickTpEnabled
@@ -160,54 +218,6 @@ ToggleInvisibleBtn.MouseButton1Click:Connect(function()
             end
         end
         ToggleInvisibleBtn.Text = invisible and "Unsichtbar: AN" or "Unsichtbar machen"
-    end
-end)
-
--- ROBLOX STUDIO FLY (Blickrichtungs-Fliegen ohne Ruckeln)
-local flying = false
-ToggleFlyBtn.MouseButton1Click:Connect(function()
-    local char = player.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    local hum = char and char:FindFirstChildOfClass("Humanoid")
-    if not hrp or not hum then return end
-    
-    flying = not flying
-    ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (Studio Modus)"
-    
-    if flying then
-        hum.PlatformStand = true -- Schaltet die normale Roblox-Physik ab
-        
-        task.spawn(function()
-            while flying and task.wait() do
-                if player.Character and hrp then
-                    local speed = tonumber(FlySpeedInput.Text) or 50
-                    local camera = workspace.CurrentCamera
-                    local moveDirection = Vector3.new(0,0,0)
-                    
-                    -- Richtung exakt nach Kamera-Blickwinkel berechnen
-                    if uis:IsKeyDown(Enum.KeyCode.W) then
-                        moveDirection = moveDirection + camera.CFrame.LookVector
-                    end
-                    if uis:IsKeyDown(Enum.KeyCode.S) then
-                        moveDirection = moveDirection - camera.CFrame.LookVector
-                    end
-                    if uis:IsKeyDown(Enum.KeyCode.A) then
-                        moveDirection = moveDirection - camera.CFrame.RightVector
-                    end
-                    if uis:IsKeyDown(Enum.KeyCode.D) then
-                        moveDirection = moveDirection + camera.CFrame.RightVector
-                    end
-                    
-                    -- Charakter sanft per CFrame im Raum bewegen (Wie im Studio)
-                    if moveDirection.Magnitude > 0 then
-                        hrp.CFrame = CFrame.new(hrp.Position + (moveDirection.Unit * (speed / 10)), hrp.Position + camera.CFrame.LookVector)
-                    end
-                    hrp.Velocity = Vector3.new(0,0,0) -- Schwerkraft komplett ausschalten
-                end
-            end
-        end)
-    else
-        if hum then hum.PlatformStand = false end -- Aktiviert die normale Bewegung wieder
     end
 end)
 
