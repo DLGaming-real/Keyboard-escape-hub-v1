@@ -1,12 +1,12 @@
--- Keyboard escape hub v1 (FULLY FIXED)
+-- Keyboard escape hub v1 (ULTIMATE FIX)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
 
 local SpeedInput = Instance.new("TextBox")
 local ApplySpeedBtn = Instance.new("TextButton")
-local FlySpeedInput = Instance.new("TextBox")
 local ToggleFlyBtn = Instance.new("TextButton")
+local FlySpeedInput = Instance.new("TextBox") -- Jetzt unter dem Button platziert
 local ToggleClickTpBtn = Instance.new("TextButton")
 local ToggleInvisibleBtn = Instance.new("TextButton")
 local ToggleAntiAfkBtn = Instance.new("TextButton")
@@ -16,7 +16,7 @@ MainFrame.Name = "KeyboardEscapeHub"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
 MainFrame.Position = UDim2.new(0.35, 0, 0.15, 0)
-MainFrame.Size = UDim2.new(0, 320, 0, 350)
+MainFrame.Size = UDim2.new(0, 320, 0, 380) -- Leicht vergrößert für das neue Layout
 MainFrame.Active = true
 MainFrame.Draggable = true
 
@@ -39,6 +39,7 @@ local function styleButton(btn, text, yPos, color)
     btn.TextSize = 14
 end
 
+-- Layout-Reihenfolge angepasst
 styleButton(ApplySpeedBtn, "Tempo erzwingen (links eintragen)", 60, Color3.fromRGB(14, 165, 233))
 SpeedInput.Parent = ApplySpeedBtn
 SpeedInput.Size = UDim2.new(0.3, 0, 1, 0)
@@ -49,19 +50,21 @@ SpeedInput.Text = "16"
 SpeedInput.Font = Enum.Font.SourceSans
 SpeedInput.TextSize = 14
 
-styleButton(ToggleFlyBtn, "Fliegen (Speed links eintragen)", 110, Color3.fromRGB(14, 165, 233))
-FlySpeedInput.Parent = ToggleFlyBtn
-FlySpeedInput.Size = UDim2.new(0.3, 0, 1, 0)
-FlySpeedInput.Position = UDim2.new(-0.35, 0, 0, 0)
+-- Fly: Button oben, Speed-Feld darunter eingeordnet
+styleButton(ToggleFlyBtn, "Fly: AUS", 110, Color3.fromRGB(14, 165, 233))
+
+FlySpeedInput.Parent = MainFrame
+FlySpeedInput.Position = UDim2.new(0.1, 0, 0, 150)
+FlySpeedInput.Size = UDim2.new(0.8, 0, 0, 30)
 FlySpeedInput.BackgroundColor3 = Color3.fromRGB(51, 65, 85)
 FlySpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlySpeedInput.Text = "50"
+FlySpeedInput.Text = "Fly Speed: 50"
 FlySpeedInput.Font = Enum.Font.SourceSans
 FlySpeedInput.TextSize = 14
 
-styleButton(ToggleClickTpBtn, "Click Teleport: AUS", 160, Color3.fromRGB(168, 85, 247))
-styleButton(ToggleInvisibleBtn, "Unsichtbar machen", 210, Color3.fromRGB(234, 179, 8))
-styleButton(ToggleAntiAfkBtn, "Anti-AFK: Inaktiv", 260, Color3.fromRGB(22, 163, 74))
+styleButton(ToggleClickTpBtn, "Click Teleport: AUS", 195, Color3.fromRGB(168, 85, 247))
+styleButton(ToggleInvisibleBtn, "Unsichtbar machen", 245, Color3.fromRGB(234, 179, 8))
+styleButton(ToggleAntiAfkBtn, "Anti-AFK: Inaktiv", 295, Color3.fromRGB(22, 163, 74))
 
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
@@ -73,7 +76,6 @@ ApplySpeedBtn.MouseButton1Click:Connect(function()
         local targetSpeed = tonumber(SpeedInput.Text) or 16
         char.Humanoid.WalkSpeed = targetSpeed
         
-        -- Verhindert, dass das Spiel die Geschwindigkeit sofort wieder zurücksetzt
         char.Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
             if char.Humanoid.WalkSpeed ~= targetSpeed then
                 char.Humanoid.WalkSpeed = targetSpeed
@@ -115,22 +117,23 @@ ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- REPARIERTES ANTI-AFK
+-- SFS ANTI-AFK FIX FOR MOBILE EXECUTORS
 local antiAfk = false
 ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
     antiAfk = not antiAfk
     ToggleAntiAfkBtn.Text = antiAfk and "Anti-AFK: AKTIV" or "Anti-AFK: Inaktiv"
 end)
 
+local vu = game:GetService("VirtualUser")
 player.Idled:Connect(function()
     if antiAfk then
-        local virtualUser = game:GetService("VirtualUser")
-        virtualUser:CaptureController()
-        virtualUser:ClickButton2(Vector2.new(0,0))
+        vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        task.wait(0.5)
+        vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
     end
 end)
 
--- REPARIERTES FLIEGEN (Mit FlySpeed-Erkennung)
+-- KOMPLETT NEUES FLIEGEN (Fly oben, Fly Speed separat auslesen)
 local flying = false
 local flyBodyGyro, flyBodyVelocity
 ToggleFlyBtn.MouseButton1Click:Connect(function()
@@ -139,7 +142,7 @@ ToggleFlyBtn.MouseButton1Click:Connect(function()
     if not hrp then return end
     
     flying = not flying
-    ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (Speed links eintragen)"
+    ToggleFlyBtn.Text = flying and "Fly: AN" or "Fly: AUS"
     
     if flying then
         flyBodyGyro = Instance.new("BodyGyro")
@@ -154,10 +157,13 @@ ToggleFlyBtn.MouseButton1Click:Connect(function()
         flyBodyVelocity.Parent = hrp
         
         local camera = workspace.CurrentCamera
-        spawn(function()
+        task.spawn(function()
             while flying and task.wait() do
                 if char and char:FindFirstChild("Humanoid") then
-                    local speed = tonumber(FlySpeedInput.Text) or 50
+                    -- Filtert nur die reinen Zahlen aus dem Fly-Speed Textfeld heraus
+                    local rawText = FlySpeedInput.Text:gsub("%D+", "")
+                    local speed = tonumber(rawText) or 50
+                    
                     local moveDirection = char.Humanoid.MoveDirection
                     flyBodyVelocity.velocity = moveDirection * speed
                     flyBodyGyro.cframe = camera.CFrame
