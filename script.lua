@@ -1,9 +1,8 @@
--- Keyboard escape hub v1 (WASD FLY EDITION)
+-- Keyboard escape hub v1 (PERFECT ADJUSTED VERSION)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
 
--- Schließen und Minimieren Buttons
 local CloseBtn = Instance.new("TextButton")
 local MinimizeBtn = Instance.new("TextButton")
 local OpenBtn = Instance.new("TextButton")
@@ -13,7 +12,7 @@ MainFrame.Name = "KeyboardEscapeHub"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
 MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 320, 0, 350)
+MainFrame.Size = UDim2.new(0, 320, 0, 260)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
@@ -27,10 +26,10 @@ Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 14
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Schließen (X)
+-- Schließen (X) - Oben Rechts
 CloseBtn.Parent = MainFrame
 CloseBtn.Size = UDim2.new(0, 35, 0, 35)
-CloseBtn.Position = UDim2.new(0.85, 0, 0.01, 0)
+CloseBtn.Position = UDim2.new(0.85, 0, 0.02, 0)
 CloseBtn.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
 CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -38,10 +37,10 @@ CloseBtn.Font = Enum.Font.SourceSansBold
 CloseBtn.TextSize = 16
 CloseBtn.ZIndex = 5
 
--- Minimieren (_)
+-- Minimieren (_) - Oben Rechts
 MinimizeBtn.Parent = MainFrame
 MinimizeBtn.Size = UDim2.new(0, 35, 0, 35)
-MinimizeBtn.Position = UDim2.new(0.72, 0, 0.01, 0)
+MinimizeBtn.Position = UDim2.new(0.72, 0, 0.02, 0)
 MinimizeBtn.BackgroundColor3 = Color3.fromRGB(100, 116, 139)
 MinimizeBtn.Text = "_"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -49,7 +48,7 @@ MinimizeBtn.Font = Enum.Font.SourceSansBold
 MinimizeBtn.TextSize = 16
 MinimizeBtn.ZIndex = 5
 
--- Öffnen Button (wenn minimiert)
+-- Öffnen Button
 OpenBtn.Parent = ScreenGui
 OpenBtn.Size = UDim2.new(0, 100, 0, 35)
 OpenBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -61,169 +60,148 @@ OpenBtn.TextSize = 14
 OpenBtn.Visible = false
 
 local SpeedInput = Instance.new("TextBox")
-local ApplySpeedBtn = Instance.new("TextButton")
+local SpeedLabel = Instance.new("TextLabel")
 local FlySpeedInput = Instance.new("TextBox")
 local ToggleFlyBtn = Instance.new("TextButton")
-local ToggleClickTpBtn = Instance.new("TextButton")
-local ToggleInvisibleBtn = Instance.new("TextButton")
 local ToggleAntiAfkBtn = Instance.new("TextButton")
 
-local function styleButton(btn, text, yPos, color)
-    btn.Parent = MainFrame
-    btn.Position = UDim2.new(0.1, 0, 0, yPos)
-    btn.Size = UDim2.new(0.8, 0, 0, 35)
-    btn.Text = text
-    btn.BackgroundColor3 = color
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 14
+local function styleElement(el, yPos, color)
+    el.Parent = MainFrame
+    el.Position = UDim2.new(0.1, 0, 0, yPos)
+    el.Size = UDim2.new(0.8, 0, 0, 40)
+    el.BackgroundColor3 = color
+    el.TextColor3 = Color3.fromRGB(255, 255, 255)
+    el.Font = Enum.Font.SourceSansBold
+    el.TextSize = 14
 end
 
-styleButton(ApplySpeedBtn, "Tempo erzwingen (links eintragen)", 60, Color3.fromRGB(14, 165, 233))
-SpeedInput.Parent = ApplySpeedBtn
-SpeedInput.Size = UDim2.new(0.3, 0, 1, 0)
-SpeedInput.Position = UDim2.new(-0.35, 0, 0, 0)
-SpeedInput.BackgroundColor3 = Color3.fromRGB(51, 65, 85)
-SpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+-- GESCHWINDIGKEIT DIREKT EINGEBEN (Kein Drücken nötig)
+styleElement(SpeedInput, 60, Color3.fromRGB(51, 65, 85))
 SpeedInput.Text = "16"
-SpeedInput.Font = Enum.Font.SourceSans
-SpeedInput.TextSize = 14
+SpeedInput.PlaceholderText = "Tempo (1 - 1000000000)"
 
-styleButton(ToggleFlyBtn, "Fliegen (Speed links eintragen)", 110, Color3.fromRGB(14, 165, 233))
+SpeedLabel.Parent = SpeedInput
+SpeedLabel.Size = UDim2.new(1, 0, 0, 20)
+SpeedLabel.Position = UDim2.new(0, 0, -0.5, 0)
+SpeedLabel.Text = "Tempo tippen (ändert sich sofort):"
+SpeedLabel.TextColor3 = Color3.fromRGB(148, 163, 184)
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.Font = Enum.Font.SourceSansBold
+SpeedLabel.TextSize = 12
+
+-- FLY MIT WASD (Genauso wie oben verlangt)
+styleElement(ToggleFlyBtn, 120, Color3.fromRGB(14, 165, 233))
+ToggleFlyBtn.Text = "Fliegen (WASD)"
+
 FlySpeedInput.Parent = ToggleFlyBtn
 FlySpeedInput.Size = UDim2.new(0.3, 0, 1, 0)
 FlySpeedInput.Position = UDim2.new(-0.35, 0, 0, 0)
 FlySpeedInput.BackgroundColor3 = Color3.fromRGB(51, 65, 85)
 FlySpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlySpeedInput.Text = "50"
+FlySpeedInput.Text = "70"
 FlySpeedInput.Font = Enum.Font.SourceSans
 FlySpeedInput.TextSize = 14
 
-styleButton(ToggleClickTpBtn, "Click Teleport: AUS", 160, Color3.fromRGB(168, 85, 247))
-styleButton(ToggleInvisibleBtn, "Unsichtbar machen", 210, Color3.fromRGB(234, 179, 8))
-styleButton(ToggleAntiAfkBtn, "Anti-AFK: Inaktiv", 260, Color3.fromRGB(22, 163, 74))
+-- ANTI-AFK LAUFBAND ANIMATION
+styleElement(ToggleAntiAfkBtn, 180, Color3.fromRGB(22, 163, 74))
+ToggleAntiAfkBtn.Text = "Anti-AFK (Laufband): AUS"
 
 local player = game.Players.LocalPlayer
-local mouse = player:GetMouse()
 
--- GUI Logik
+-- GUI Steuerung
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- TEMPO CODE
-ApplySpeedBtn.MouseButton1Click:Connect(function()
-    local char = player.Character
-    if char and char:FindFirstChild("Humanoid") then
-        char.Humanoid.WalkSpeed = tonumber(SpeedInput.Text) or 16
-    end
-end)
-
--- CLICK TP CODE
-local clickTpEnabled = false
-ToggleClickTpBtn.MouseButton1Click:Connect(function()
-    clickTpEnabled = not clickTpEnabled
-    ToggleClickTpBtn.Text = clickTpEnabled and "Click Teleport: AN" or "Click Teleport: AUS"
-end)
-
-mouse.Button1Down:Connect(function()
-    if clickTpEnabled then
+-- TEMPO ÄNDERT SICH BEIM TIPPEN SOFORT
+SpeedInput:GetPropertyChangedSignal("Text"):Connect(function()
+    local val = tonumber(SpeedInput.Text)
+    if val then
         local char = player.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            char.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p + Vector3.new(0, 3, 0))
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = val
         end
     end
 end)
 
--- UNSICHTBARKEIT CODE
-local invisible = false
-ToggleInvisibleBtn.MouseButton1Click:Connect(function()
-    local char = player.Character
-    if char then
-        invisible = not invisible
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") or part:IsA("Decal") then
-                if part.Name ~= "HumanoidRootPart" then part.Transparency = invisible and 1 or 0 end
-            end
-        end
-        ToggleInvisibleBtn.Text = invisible and "Unsichtbar: AN" or "Unsichtbar machen"
-    end
+-- Immer aufpassen, falls der Charakter neu spawnt, dass die eingestellte Geschwindigkeit bleibt
+player.CharacterAdded:Connect(function(char)
+    local hum = char:WaitForChild("Humanoid", 5)
+    local val = tonumber(SpeedInput.Text)
+    if hum and val then hum.WalkSpeed = val end
 end)
 
--- ANTI-AFK CODE
-local antiAfk = false
-ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
-    antiAfk = not antiAfk
-    ToggleAntiAfkBtn.Text = antiAfk and "Anti-AFK: AKTIV" or "Anti-AFK: Inaktiv"
-end)
-
-player.Idled:Connect(function()
-    if antiAfk then
-        local vu = game:GetService("VirtualUser")
-        vu:CaptureController()
-        vu:ClickButton2(Vector2.new(0,0))
-    end
-end)
-
--- WASD FLIEGEN (OHNE KAMERAZWANG)
+-- FLIEGEN (Stabil über WASD/Steuerkreuz)
 local flying = false
-local flyGyro, flyVelocity
-local uis = game:GetService("UserInputService")
-
+local bv, bg
 ToggleFlyBtn.MouseButton1Click:Connect(function()
     local char = player.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if not hrp or not hum then return end
     
     flying = not flying
-    ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (Speed links eintragen)"
+    ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (WASD)"
     
     if flying then
-        -- Hält den Charakter gerade im Raum
-        flyGyro = Instance.new("BodyGyro", hrp)
-        flyGyro.P = 9e4
-        flyGyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-        flyGyro.cframe = hrp.CFrame
+        bv = Instance.new("BodyVelocity", hrp)
+        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+        bv.Velocity = Vector3.new(0, 0.1, 0)
         
-        -- Steuert die Bewegung
-        flyVelocity = Instance.new("BodyVelocity", hrp)
-        flyVelocity.velocity = Vector3.new(0, 0.1, 0)
-        flyVelocity.maxForce = Vector3.new(9e9, 9e9, 9e9)
+        bg = Instance.new("BodyGyro", hrp)
+        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bg.CFrame = hrp.CFrame
         
         task.spawn(function()
             while flying and task.wait() do
-                if char and hrp then
-                    local speed = tonumber(FlySpeedInput.Text) or 50
-                    local moveDirection = Vector3.new(0,0,0)
-                    
-                    -- WASD Tasten abfragen für Bewegung relativ zur Charakter-Ausrichtung
-                    if uis:IsKeyDown(Enum.KeyCode.W) then
-                        moveDirection = moveDirection + hrp.CFrame.LookVector
-                    end
-                    if uis:IsKeyDown(Enum.KeyCode.S) then
-                        moveDirection = moveDirection - hrp.CFrame.LookVector
-                    end
-                    if uis:IsKeyDown(Enum.KeyCode.A) then
-                        moveDirection = moveDirection - hrp.CFrame.RightVector
-                    end
-                    if uis:IsKeyDown(Enum.KeyCode.D) then
-                        moveDirection = moveDirection + hrp.CFrame.RightVector
-                    end
-                    
-                    -- Wenn keine Taste gedrückt wird, einfach in der Luft schweben
-                    if moveDirection.Magnitude > 0 then
-                        flyVelocity.velocity = moveDirection.Unit * speed
-                    else
-                        flyVelocity.velocity = Vector3.new(0, 0.1, 0)
-                    end
-                    
-                    -- Charakter schaut nicht starr in Kamera-Blickrichtung
-                    flyGyro.cframe = CFrame.new(hrp.Position, hrp.Position + hrp.CFrame.LookVector)
+                local speed = tonumber(FlySpeedInput.Text) or 50
+                bv.Velocity = hum.MoveDirection * speed
+                bg.CFrame = hrp.CFrame
+                if hum.MoveDirection == Vector3.new(0,0,0) then
+                    bv.Velocity = Vector3.new(0, 0.1, 0)
                 end
             end
         end)
     else
-        if flyGyro then flyGyro:Destroy() end
-        if flyVelocity then flyVelocity:Destroy() end
+        if bv then bv:Destroy() end
+        if bg then bg:Destroy() end
     end
+end)
+
+-- ANTI-AFK MIT LAUFBAND-EFFEKT (Bewegt Beine im Stand + Anti Kick)
+local antiAfk = false
+local currentTrack
+ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
+    antiAfk = not antiAfk
+    ToggleAntiAfkBtn.Text = antiAfk and "Anti-AFK (Laufband): AN" or "Anti-AFK (Laufband): AUS"
+    
+    local char = player.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    
+    if antiAfk then
+        if hum and hum:FindFirstChildOfClass("Animator") then
+            local anims = char:FindFirstChild("Animate")
+            local runAnim = anims and (anims:FindFirstChild("run") or anims:FindFirstChild("walk"))
+            local id = runAnim and runAnim:FindFirstChildOfClass("Animation")
+            if id then
+                currentTrack = hum:FindFirstChildOfClass("Animator"):LoadAnimation(id)
+                currentTrack.Looped = true
+                currentTrack:Play()
+                currentTrack:AdjustSpeed(4) -- Macht die Beine extraschnell fürs Laufband-Aussehen
+            end
+        end
+    else
+        if currentTrack then
+            currentTrack:Stop()
+            currentTrack:Destroy()
+        end
+    end
+end)
+
+-- Anti-Kick Signal zusätzlich im Hintergrund
+player.Idled:Connect(function()
+    local vu = game:GetService("VirtualUser")
+    vu:CaptureController()
+    vu:ClickButton2(Vector2.new(0,0))
 end)
