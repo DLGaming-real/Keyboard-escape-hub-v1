@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (TRUE CLASSIC VERSION - REPAIRED)
+-- Keyboard escape hub v1 (FULL COMPLETE FIX)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -78,10 +78,9 @@ local function styleElement(el, yPos, color)
     el.TextSize = 14
 end
 
--- 1. TEMPO (Das originale System vom Anfang)
+-- 1. TEMPO (Das originale System)
 styleElement(SpeedInput, 80, Color3.fromRGB(51, 65, 85))
 SpeedInput.Text = "16"
-SpeedInput.PlaceholderText = "Tempo (1 - 1000000000)"
 
 SpeedLabel.Parent = MainFrame
 SpeedLabel.Size = UDim2.new(0.8, 0, 0, 20)
@@ -93,7 +92,7 @@ SpeedLabel.Font = Enum.Font.SourceSansBold
 SpeedLabel.TextSize = 12
 SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- 2. FLY (Exakt das originale WASD-System von ganz oben)
+-- 2. FLY (Das originale funktionierende System)
 styleElement(ToggleFlyBtn, 140, Color3.fromRGB(14, 165, 233))
 ToggleFlyBtn.Text = "Fliegen (WASD)"
 
@@ -126,12 +125,12 @@ local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
 local runService = game:GetService("RunService")
 
--- GUI Funktionen
+-- GUI Logik
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- TEMPO EVENT (Originale Funktionsweise beim Tippen)
+-- TEMPO CODE (Original)
 SpeedInput:GetPropertyChangedSignal("Text"):Connect(function()
     local val = tonumber(SpeedInput.Text)
     if val then
@@ -147,7 +146,7 @@ player.CharacterAdded:Connect(function(char)
     if hum and val then hum.WalkSpeed = val end
 end)
 
--- NO CLIP
+-- NO CLIP CODE
 local noclip = false
 ToggleNoClipBtn.MouseButton1Click:Connect(function()
     noclip = not noclip
@@ -162,7 +161,7 @@ runService.Stepped:Connect(function()
     end
 end)
 
--- FLY (Exakt das alte funktionierende Skript mit BodyVelocity/Gyro)
+-- FLY CODE (Original)
 local flying = false
 local bv, bg
 ToggleFlyBtn.MouseButton1Click:Connect(function()
@@ -199,7 +198,7 @@ ToggleFlyBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- CLICK TELEPORT
+-- CLICK TELEPORT CODE
 local clickTpEnabled = false
 ToggleClickTpBtn.MouseButton1Click:Connect(function()
     clickTpEnabled = not clickTpEnabled
@@ -212,7 +211,7 @@ mouse.Button1Down:Connect(function()
     end
 end)
 
--- UNSICHTBAR
+-- UNSICHTBAR CODE
 local invisible = false
 ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     local char = player.Character
@@ -227,7 +226,7 @@ ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ANTI AFK LAUFBAND ANIMATION
+-- ANTI AFK LAUFBAND CODE
 local antiAfk = false
 local currentTrack
 ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
