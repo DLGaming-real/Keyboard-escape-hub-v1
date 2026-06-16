@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (PERFECT ANIMATION & BUTTONS WORKING)
+-- Keyboard escape hub v1 (BACK TO ORIGINAL WORKING BASE)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -27,29 +27,29 @@ Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 14
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Schließen Button (X) - ERZWUNGEN OBEN RECHTS
+-- Schließen (X)
 CloseBtn.Parent = MainFrame
-CloseBtn.Size = UDim2.new(0, 40, 0, 40)
-CloseBtn.Position = UDim2.new(0.85, 0, 0, 2)
+CloseBtn.Size = UDim2.new(0, 35, 0, 35)
+CloseBtn.Position = UDim2.new(0.85, 0, 0.01, 0)
 CloseBtn.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
 CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseBtn.Font = Enum.Font.SourceSansBold
-CloseBtn.TextSize = 18
-CloseBtn.ZIndex = 10
+CloseBtn.TextSize = 16
+CloseBtn.ZIndex = 5
 
--- Minimieren Button (_) - ERZWUNGEN NEBEN X
+-- Minimieren (_)
 MinimizeBtn.Parent = MainFrame
-MinimizeBtn.Size = UDim2.new(0, 40, 0, 40)
-MinimizeBtn.Position = UDim2.new(0.70, 0, 0, 2)
+MinimizeBtn.Size = UDim2.new(0, 35, 0, 35)
+MinimizeBtn.Position = UDim2.new(0.72, 0, 0.01, 0)
 MinimizeBtn.BackgroundColor3 = Color3.fromRGB(100, 116, 139)
 MinimizeBtn.Text = "_"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 MinimizeBtn.Font = Enum.Font.SourceSansBold
-MinimizeBtn.TextSize = 18
-MinimizeBtn.ZIndex = 10
+MinimizeBtn.TextSize = 16
+MinimizeBtn.ZIndex = 5
 
--- Öffnen Button (Wird erst sichtbar, wenn minimiert)
+-- Öffnen
 OpenBtn.Parent = ScreenGui
 OpenBtn.Size = UDim2.new(0, 100, 0, 35)
 OpenBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -106,12 +106,12 @@ styleButton(ToggleAntiAfkBtn, "Anti-AFK: Inaktiv", 260, Color3.fromRGB(22, 163, 
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
 
--- Klick-Funktionen für Schließen/Minimieren
+-- Schließen & Minimieren Funktionen
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- Tempo
+-- ORIGINAL TEMPO
 ApplySpeedBtn.MouseButton1Click:Connect(function()
     local char = player.Character
     if char and char:FindFirstChild("Humanoid") then
@@ -150,70 +150,25 @@ ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- LAUF-ANIMATION ANTI-AFK (Laufband-Effekt ohne Bewegung)
+-- ORIGINAL ANTI AFK 
 local antiAfk = false
 ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
     antiAfk = not antiAfk
     ToggleAntiAfkBtn.Text = antiAfk and "Anti-AFK: AKTIV" or "Anti-AFK: Inaktiv"
 end)
 
-task.spawn(function()
-    while true do
-        task.wait(1)
-        if antiAfk then
-            local char = player.Character
-            local hum = char and char:FindFirstChild("Humanoid")
-            if hum and hum.Animator then
-                -- Sucht nach der Standard-Laufanimation im Charakter und spielt sie im Stand ab
-                local anims = char:FindFirstChild("Animate")
-                local runAnim = anims and (anims:FindFirstChild("run") or anims:FindFirstChild("walk"))
-                local id = runAnim and runAnim:FindFirstChildOfClass("Animation")
-                if id then
-                    local track = hum.Animator:LoadAnimation(id)
-                    track:Play()
-                    task.wait(0.5)
-                    track:Stop()
-                end
-            end
-        end
+player.Idled:Connect(function()
+    if antiAfk then
+        local virtualUser = game:GetService("VirtualUser")
+        virtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        wait(1)
+        virtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
     end
 end)
 
--- FLY MODUS REPARIERT
+-- ORIGINAL FLIEGEN
 local flying = false
-local flyGyro, flyVelocity
 ToggleFlyBtn.MouseButton1Click:Connect(function()
-    local char = player.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    
     flying = not flying
     ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (Speed links eintragen)"
-    
-    if flying then
-        flyGyro = Instance.new("BodyGyro", hrp)
-        flyGyro.P = 9e4
-        flyGyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-        flyGyro.cframe = hrp.CFrame
-        
-        flyVelocity = Instance.new("BodyVelocity", hrp)
-        flyVelocity.velocity = Vector3.new(0, 0.1, 0)
-        flyVelocity.maxForce = Vector3.new(9e9, 9e9, 9e9)
-        
-        task.spawn(function()
-            while flying and task.wait() do
-                if char and char:FindFirstChild("Humanoid") then
-                    local speed = tonumber(FlySpeedInput.Text) or 50
-                    flyVelocity.velocity = char.Humanoid.MoveDirection * speed
-                    flyGyro.cframe = workspace.CurrentCamera.CFrame
-                    if char.Humanoid.MoveDirection == Vector3.new(0,0,0) then
-                        flyVelocity.velocity = Vector3.new(0, 0.1, 0)
-                    end
-                end
-            end
-        end)
-    else
-        if flyGyro then flyGyro:Destroy() end
-        if flyVelocity then flyVelocity:Destroy() end
-    end
 end)
