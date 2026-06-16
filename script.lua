@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (FINAL COMPATIBILITY FIX)
+-- Keyboard escape hub v1 (TRUE CLASSIC VERSION - REPAIRED)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -16,6 +16,7 @@ MainFrame.Size = UDim2.new(0, 320, 0, 430)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
+-- Titel Leiste
 Title.Parent = MainFrame
 Title.Size = UDim2.new(1, 0, 0, 45)
 Title.BackgroundColor3 = Color3.fromRGB(30, 41, 59)
@@ -25,6 +26,7 @@ Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 14
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
+-- Schließen (X)
 CloseBtn.Parent = MainFrame
 CloseBtn.Size = UDim2.new(0, 35, 0, 35)
 CloseBtn.Position = UDim2.new(0.85, 0, 0.02, 0)
@@ -35,6 +37,7 @@ CloseBtn.Font = Enum.Font.SourceSansBold
 CloseBtn.TextSize = 16
 CloseBtn.ZIndex = 5
 
+-- Minimieren (_)
 MinimizeBtn.Parent = MainFrame
 MinimizeBtn.Size = UDim2.new(0, 35, 0, 35)
 MinimizeBtn.Position = UDim2.new(0.72, 0, 0.02, 0)
@@ -45,6 +48,7 @@ MinimizeBtn.Font = Enum.Font.SourceSansBold
 MinimizeBtn.TextSize = 16
 MinimizeBtn.ZIndex = 5
 
+-- Öffnen Button
 OpenBtn.Parent = ScreenGui
 OpenBtn.Size = UDim2.new(0, 100, 0, 35)
 OpenBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -74,20 +78,22 @@ local function styleElement(el, yPos, color)
     el.TextSize = 14
 end
 
--- 1. TEMPO
+-- 1. TEMPO (Das originale System vom Anfang)
 styleElement(SpeedInput, 80, Color3.fromRGB(51, 65, 85))
 SpeedInput.Text = "16"
+SpeedInput.PlaceholderText = "Tempo (1 - 1000000000)"
 
 SpeedLabel.Parent = MainFrame
 SpeedLabel.Size = UDim2.new(0.8, 0, 0, 20)
 SpeedLabel.Position = UDim2.new(0.1, 0, 0, 58)
-SpeedLabel.Text = "Tempo (Box anklicken zum Ändern):"
+SpeedLabel.Text = "Tempo tippen (ändert sich sofort):"
 SpeedLabel.TextColor3 = Color3.fromRGB(148, 163, 184)
 SpeedLabel.BackgroundTransparency = 1
 SpeedLabel.Font = Enum.Font.SourceSansBold
 SpeedLabel.TextSize = 12
+SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- 2. FLY
+-- 2. FLY (Exakt das originale WASD-System von ganz oben)
 styleElement(ToggleFlyBtn, 140, Color3.fromRGB(14, 165, 233))
 ToggleFlyBtn.Text = "Fliegen (WASD)"
 
@@ -120,17 +126,25 @@ local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
 local runService = game:GetService("RunService")
 
+-- GUI Funktionen
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- DAUERHAFTES TEMPO SYSTEM (Übernimmt den Wert jetzt jede Sekunde automatisch)
-runService.Heartbeat:Connect(function()
+-- TEMPO EVENT (Originale Funktionsweise beim Tippen)
+SpeedInput:GetPropertyChangedSignal("Text"):Connect(function()
     local val = tonumber(SpeedInput.Text)
-    if val and player.Character then
-        local hum = player.Character:FindFirstChildOfClass("Humanoid")
+    if val then
+        local char = player.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
         if hum then hum.WalkSpeed = val end
     end
+end)
+
+player.CharacterAdded:Connect(function(char)
+    local hum = char:WaitForChild("Humanoid", 5)
+    local val = tonumber(SpeedInput.Text)
+    if hum and val then hum.WalkSpeed = val end
 end)
 
 -- NO CLIP
@@ -148,12 +162,12 @@ runService.Stepped:Connect(function()
     end
 end)
 
--- ABSOLUT STABILES CLASSIC FLY
+-- FLY (Exakt das alte funktionierende Skript mit BodyVelocity/Gyro)
 local flying = false
 local bv, bg
 ToggleFlyBtn.MouseButton1Click:Connect(function()
     local char = player.Character
-    local hrp = char and (char:FindFirstChild("HumanoidRootPart") or char:WaitForChild("HumanoidRootPart", 5))
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
     local hum = char and char:FindFirstChildOfClass("Humanoid")
     if not hrp or not hum then return end
     
@@ -161,33 +175,27 @@ ToggleFlyBtn.MouseButton1Click:Connect(function()
     ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (WASD)"
     
     if flying then
-        bv = Instance.new("BodyVelocity")
+        bv = Instance.new("BodyVelocity", hrp)
         bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
         bv.Velocity = Vector3.new(0, 0.1, 0)
-        bv.Parent = hrp
         
-        bg = Instance.new("BodyGyro")
+        bg = Instance.new("BodyGyro", hrp)
         bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
         bg.CFrame = hrp.CFrame
-        bg.Parent = hrp
-    else
-        if bv then bv:Destroy() bv = nil end
-        if bg then bg:Destroy() bg = nil end
-    end
-end)
-
-runService.Heartbeat:Connect(function()
-    if flying and player.Character then
-        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-        local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hrp and hum and bv and bg then
-            local speed = tonumber(FlySpeedInput.Text) or 50
-            bv.Velocity = hum.MoveDirection * speed
-            bg.CFrame = hrp.CFrame
-            if hum.MoveDirection == Vector3.new(0,0,0) then
-                bv.Velocity = Vector3.new(0, 0.1, 0)
+        
+        task.spawn(function()
+            while flying and task.wait() do
+                local speed = tonumber(FlySpeedInput.Text) or 50
+                bv.Velocity = hum.MoveDirection * speed
+                bg.CFrame = hrp.CFrame
+                if hum.MoveDirection == Vector3.new(0,0,0) then
+                    bv.Velocity = Vector3.new(0, 0.1, 0)
+                end
             end
-        end
+        end)
+    else
+        if bv then bv:Destroy() end
+        if bg then bg:Destroy() end
     end
 end)
 
@@ -207,9 +215,10 @@ end)
 -- UNSICHTBAR
 local invisible = false
 ToggleInvisibleBtn.MouseButton1Click:Connect(function()
-    if player.Character then
+    local char = player.Character
+    if char then
         invisible = not invisible
-        for _, part in pairs(player.Character:GetDescendants()) do
+        for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") or part:IsA("Decal") then
                 if part.Name ~= "HumanoidRootPart" then part.Transparency = invisible and 1 or 0 end
             end
@@ -218,7 +227,7 @@ ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ANTI AFK LAUFBAND
+-- ANTI AFK LAUFBAND ANIMATION
 local antiAfk = false
 local currentTrack
 ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
