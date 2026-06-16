@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (BACK TO ORIGINAL WORKING BASE)
+-- Keyboard escape hub v1 (WASD FLY EDITION)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -49,7 +49,7 @@ MinimizeBtn.Font = Enum.Font.SourceSansBold
 MinimizeBtn.TextSize = 16
 MinimizeBtn.ZIndex = 5
 
--- Öffnen
+-- Öffnen Button (wenn minimiert)
 OpenBtn.Parent = ScreenGui
 OpenBtn.Size = UDim2.new(0, 100, 0, 35)
 OpenBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -106,12 +106,12 @@ styleButton(ToggleAntiAfkBtn, "Anti-AFK: Inaktiv", 260, Color3.fromRGB(22, 163, 
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
 
--- Schließen & Minimieren Funktionen
+-- GUI Logik
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- ORIGINAL TEMPO
+-- TEMPO CODE
 ApplySpeedBtn.MouseButton1Click:Connect(function()
     local char = player.Character
     if char and char:FindFirstChild("Humanoid") then
@@ -119,7 +119,7 @@ ApplySpeedBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Click TP
+-- CLICK TP CODE
 local clickTpEnabled = false
 ToggleClickTpBtn.MouseButton1Click:Connect(function()
     clickTpEnabled = not clickTpEnabled
@@ -135,7 +135,7 @@ mouse.Button1Down:Connect(function()
     end
 end)
 
--- Unsichtbarkeit
+-- UNSICHTBARKEIT CODE
 local invisible = false
 ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     local char = player.Character
@@ -150,7 +150,7 @@ ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ORIGINAL ANTI AFK 
+-- ANTI-AFK CODE
 local antiAfk = false
 ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
     antiAfk = not antiAfk
@@ -159,16 +159,71 @@ end)
 
 player.Idled:Connect(function()
     if antiAfk then
-        local virtualUser = game:GetService("VirtualUser")
-        virtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-        wait(1)
-        virtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        local vu = game:GetService("VirtualUser")
+        vu:CaptureController()
+        vu:ClickButton2(Vector2.new(0,0))
     end
 end)
 
--- ORIGINAL FLIEGEN
+-- WASD FLIEGEN (OHNE KAMERAZWANG)
 local flying = false
+local flyGyro, flyVelocity
+local uis = game:GetService("UserInputService")
+
 ToggleFlyBtn.MouseButton1Click:Connect(function()
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    
     flying = not flying
     ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (Speed links eintragen)"
+    
+    if flying then
+        -- Hält den Charakter gerade im Raum
+        flyGyro = Instance.new("BodyGyro", hrp)
+        flyGyro.P = 9e4
+        flyGyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+        flyGyro.cframe = hrp.CFrame
+        
+        -- Steuert die Bewegung
+        flyVelocity = Instance.new("BodyVelocity", hrp)
+        flyVelocity.velocity = Vector3.new(0, 0.1, 0)
+        flyVelocity.maxForce = Vector3.new(9e9, 9e9, 9e9)
+        
+        task.spawn(function()
+            while flying and task.wait() do
+                if char and hrp then
+                    local speed = tonumber(FlySpeedInput.Text) or 50
+                    local moveDirection = Vector3.new(0,0,0)
+                    
+                    -- WASD Tasten abfragen für Bewegung relativ zur Charakter-Ausrichtung
+                    if uis:IsKeyDown(Enum.KeyCode.W) then
+                        moveDirection = moveDirection + hrp.CFrame.LookVector
+                    end
+                    if uis:IsKeyDown(Enum.KeyCode.S) then
+                        moveDirection = moveDirection - hrp.CFrame.LookVector
+                    end
+                    if uis:IsKeyDown(Enum.KeyCode.A) then
+                        moveDirection = moveDirection - hrp.CFrame.RightVector
+                    end
+                    if uis:IsKeyDown(Enum.KeyCode.D) then
+                        moveDirection = moveDirection + hrp.CFrame.RightVector
+                    end
+                    
+                    -- Wenn keine Taste gedrückt wird, einfach in der Luft schweben
+                    if moveDirection.Magnitude > 0 then
+                        flyVelocity.velocity = moveDirection.Unit * speed
+                    else
+                        flyVelocity.velocity = Vector3.new(0, 0.1, 0)
+                    end
+                    
+                    -- Charakter schaut nicht starr in Kamera-Blickrichtung
+                    flyGyro.cframe = CFrame.new(hrp.Position, hrp.Position + hrp.CFrame.LookVector)
+                end
+            end
+        end)
+    else
+        if flyGyro then flyGyro:Destroy() end
+        if flyVelocity then flyVelocity:Destroy() end
+    end
 end)
