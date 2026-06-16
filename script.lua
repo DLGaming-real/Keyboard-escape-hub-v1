@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (ROBUX TREADMILL BYPASS EDITION)
+-- Keyboard escape hub v1 (CLEAN DELTA NO-CRASH EDITION)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -130,27 +130,24 @@ CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- 🔥 PREMIUM LAUFBÄNDER & GAMEPASS ROBUX BYPASS
+-- 🔥 DELTA-SICHERER LAUFBAND FREISCHALTER (Kein hookmetamethod!)
 task.spawn(function()
-    -- Faked den Kauf für JEDEN Gamepass und JEDES Asset im Spiel (Admin, Gold, Diamond, Candy)
-    local market = game:GetService("MarketplaceService")
-    local old; old = hookmetamethod(market, "__index", function(self, key)
-        if key == "UserOwnsGamePassAsync" or key == "PlayerOwnsAsset" then
-            return function() return true end
-        end
-        return old(self, key)
-    end)
-
-    -- Schutz-Zusatz: Falls das Spiel Barrieren nutzt, werden diese zusätzlich abgeschaltet
-    while task.wait(2) do
+    while task.wait(1) do
+        -- 1. Schaltet die Barrieren im Spiel physikalisch aus
         for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("BasePart") and (obj.Name:find("Gate") or obj.Name:find("VIP") or obj.Name:find("Border") or obj.Name:find("Barrier")) then
+            if obj:IsA("BasePart") and (obj.Name:find("Gate") or obj.Name:find("VIP") or obj.Name:find("Border") or obj.Name:find("Barrier") or obj.Name:find("Treadmill")) then
                 obj.CanCollide = false
-                obj.Transparency = 0.8
+                obj.Transparency = 0.7
             end
-            if obj:IsA("Script") or obj:IsA("LocalScript") then
-                if obj.Name:find("Kick") or obj.Name:find("Kill") or obj.Name:find("CheckPass") then
-                    obj.Disabled = true
+        end
+        
+        -- 2. Injeziert die "Gekauft"-Werte direkt in deine lokalen Spieler-Einstellungen
+        local pData = player:FindFirstChild("leaderstats") or player:FindFirstChild("PlayerGui")
+        if pData then
+            -- Sucht nach typischen Freischalt-Werten im Spielordner
+            for _, v in pairs(pData:GetDescendants()) do
+                if v:IsA("BoolValue") and (v.Name:find("VIP") or v.Name:find("Pass") or v.Name:find("Premium") or v.Name:find("Admin") or v.Name:find("Candy") or v.Name:find("Diamond") or v.Name:find("Gold")) then
+                    v.Value = true
                 end
             end
         end
@@ -189,7 +186,7 @@ runService.Stepped:Connect(function()
     end
 end)
 
--- FLY SYSTEM (Original)
+-- FLY SYSTEM
 local flying = false
 local bv, bg
 ToggleFlyBtn.MouseButton1Click:Connect(function()
