@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (THE ULTIMATE ALL-IN-ONE FIX)
+-- Keyboard escape hub v1 (LAG FIX EDITION)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -12,11 +12,10 @@ MainFrame.Name = "KeyboardEscapeHub"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
 MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 320, 0, 360) -- Größe angepasst, damit alles Platz hat
+MainFrame.Size = UDim2.new(0, 320, 0, 360)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
--- Titel Leiste
 Title.Parent = MainFrame
 Title.Size = UDim2.new(1, 0, 0, 45)
 Title.BackgroundColor3 = Color3.fromRGB(30, 41, 59)
@@ -26,7 +25,6 @@ Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 14
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Schließen (X)
 CloseBtn.Parent = MainFrame
 CloseBtn.Size = UDim2.new(0, 35, 0, 35)
 CloseBtn.Position = UDim2.new(0.85, 0, 0.02, 0)
@@ -37,7 +35,6 @@ CloseBtn.Font = Enum.Font.SourceSansBold
 CloseBtn.TextSize = 16
 CloseBtn.ZIndex = 5
 
--- Minimieren (_)
 MinimizeBtn.Parent = MainFrame
 MinimizeBtn.Size = UDim2.new(0, 35, 0, 35)
 MinimizeBtn.Position = UDim2.new(0.72, 0, 0.02, 0)
@@ -48,7 +45,6 @@ MinimizeBtn.Font = Enum.Font.SourceSansBold
 MinimizeBtn.TextSize = 16
 MinimizeBtn.ZIndex = 5
 
--- Öffnen Button
 OpenBtn.Parent = ScreenGui
 OpenBtn.Size = UDim2.new(0, 100, 0, 35)
 OpenBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -77,7 +73,7 @@ local function styleElement(el, yPos, color)
     el.TextSize = 14
 end
 
--- 1. TEMPO (Sofort-Änderung beim Tippen)
+-- 1. TEMPO
 styleElement(SpeedInput, 70, Color3.fromRGB(51, 65, 85))
 SpeedInput.Text = "16"
 SpeedInput.PlaceholderText = "Tempo tippen..."
@@ -85,13 +81,13 @@ SpeedInput.PlaceholderText = "Tempo tippen..."
 SpeedLabel.Parent = SpeedInput
 SpeedLabel.Size = UDim2.new(1, 0, 0, 20)
 SpeedLabel.Position = UDim2.new(0, 0, -0.5, 0)
-SpeedLabel.Text = "Tempo (ändert sich sofort beim Tippen):"
+SpeedLabel.Text = "Tempo (ändert sich sofort):"
 SpeedLabel.TextColor3 = Color3.fromRGB(148, 163, 184)
 SpeedLabel.BackgroundTransparency = 1
 SpeedLabel.Font = Enum.Font.SourceSansBold
 SpeedLabel.TextSize = 11
 
--- 2. FLY (Button + Speed links daneben)
+-- 2. FLY
 styleElement(ToggleFlyBtn, 120, Color3.fromRGB(14, 165, 233))
 ToggleFlyBtn.Text = "Fliegen (WASD)"
 
@@ -112,33 +108,23 @@ ToggleClickTpBtn.Text = "Click Teleport: AUS"
 styleElement(ToggleInvisibleBtn, 220, Color3.fromRGB(234, 179, 8))
 ToggleInvisibleBtn.Text = "Unsichtbar machen"
 
--- 5. ANTI-AFK (Laufband)
+-- 5. ANTI-AFK
 styleElement(ToggleAntiAfkBtn, 270, Color3.fromRGB(22, 163, 74))
 ToggleAntiAfkBtn.Text = "Anti-AFK (Laufband): AUS"
-
 
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
 
--- GUI Aktionen
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- TEMPO BEIM TIPPEN
+-- TEMPO SOFORT
 SpeedInput:GetPropertyChangedSignal("Text"):Connect(function()
     local val = tonumber(SpeedInput.Text)
-    if val then
-        local char = player.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = val end
+    if val and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+        player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = val
     end
-end)
-
-player.CharacterAdded:Connect(function(char)
-    local hum = char:WaitForChild("Humanoid", 5)
-    local val = tonumber(SpeedInput.Text)
-    if hum and val then hum.WalkSpeed = val end
 end)
 
 -- CLICK TELEPORT
@@ -149,21 +135,17 @@ ToggleClickTpBtn.MouseButton1Click:Connect(function()
 end)
 
 mouse.Button1Down:Connect(function()
-    if clickTpEnabled then
-        local char = player.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            char.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p + Vector3.new(0, 3, 0))
-        end
+    if clickTpEnabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p + Vector3.new(0, 3, 0))
     end
 end)
 
 -- UNSICHTBARKEIT
 local invisible = false
 ToggleInvisibleBtn.MouseButton1Click:Connect(function()
-    local char = player.Character
-    if char then
+    if player.Character then
         invisible = not invisible
-        for _, part in pairs(char:GetDescendants()) do
+        for _, part in pairs(player.Character:GetDescendants()) do
             if part:IsA("BasePart") or part:IsA("Decal") then
                 if part.Name ~= "HumanoidRootPart" then part.Transparency = invisible and 1 or 0 end
             end
@@ -172,7 +154,7 @@ ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- WASD FLIEGEN
+-- FLY (WASD - LEISTUNGSOPTIMIERT GEGEN LAGS)
 local flying = false
 local bv, bg
 ToggleFlyBtn.MouseButton1Click:Connect(function()
@@ -185,21 +167,27 @@ ToggleFlyBtn.MouseButton1Click:Connect(function()
     ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (WASD)"
     
     if flying then
-        bv = Instance.new("BodyVelocity", hrp)
+        bv = Instance.new("BodyVelocity")
         bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
         bv.Velocity = Vector3.new(0, 0.1, 0)
+        bv.Parent = hrp
         
-        bg = Instance.new("BodyGyro", hrp)
+        bg = Instance.new("BodyGyro")
         bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
         bg.CFrame = hrp.CFrame
+        bg.Parent = hrp
         
         task.spawn(function()
-            while flying and task.wait() do
-                local speed = tonumber(FlySpeedInput.Text) or 50
-                bv.Velocity = hum.MoveDirection * speed
-                bg.CFrame = hrp.CFrame
-                if hum.MoveDirection == Vector3.new(0,0,0) then
-                    bv.Velocity = Vector3.new(0, 0.1, 0)
+            while flying do
+                task.wait(0.05) -- Verhindert das "Lecken"/Abstürzen durch Pufferung
+                if player.Character and hrp and hum then
+                    local speed = tonumber(FlySpeedInput.Text) or 50
+                    if hum.MoveDirection.Magnitude > 0 then
+                        bv.Velocity = hum.MoveDirection * speed
+                    else
+                        bv.Velocity = Vector3.new(0, 0.1, 0)
+                    end
+                    bg.CFrame = hrp.CFrame
                 end
             end
         end)
@@ -219,23 +207,18 @@ ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
     local char = player.Character
     local hum = char and char:FindFirstChildOfClass("Humanoid")
     
-    if antiAfk then
-        if hum and hum:FindFirstChildOfClass("Animator") then
-            local anims = char:FindFirstChild("Animate")
-            local runAnim = anims and (anims:FindFirstChild("run") or anims:FindFirstChild("walk"))
-            local id = runAnim and runAnim:FindFirstChildOfClass("Animation")
-            if id then
-                currentTrack = hum:FindFirstChildOfClass("Animator"):LoadAnimation(id)
-                currentTrack.Looped = true
-                currentTrack:Play()
-                currentTrack:AdjustSpeed(4)
-            end
+    if antiAfk and hum and hum:FindFirstChildOfClass("Animator") then
+        local anims = char:FindFirstChild("Animate")
+        local runAnim = anims and (anims:FindFirstChild("run") or anims:FindFirstChild("walk"))
+        local id = runAnim and runAnim:FindFirstChildOfClass("Animation")
+        if id then
+            currentTrack = hum:FindFirstChildOfClass("Animator"):LoadAnimation(id)
+            currentTrack.Looped = true
+            currentTrack:Play()
+            currentTrack:AdjustSpeed(4)
         end
     else
-        if currentTrack then
-            currentTrack:Stop()
-            currentTrack:Destroy()
-        end
+        if currentTrack then currentTrack:Stop() currentTrack:Destroy() end
     end
 end)
 
