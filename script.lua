@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (ULTIMATE STABLE VERSION)
+-- Keyboard escape hub v1 (ROBUX TREADMILL BYPASS EDITION)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -130,12 +130,41 @@ CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- TEMPO SYSTEM FIX
-SpeedInput:GetPropertyChangedSignal("Text"):Connect(function()
+-- 🔥 PREMIUM LAUFBÄNDER & GAMEPASS ROBUX BYPASS
+task.spawn(function()
+    -- Faked den Kauf für JEDEN Gamepass und JEDES Asset im Spiel (Admin, Gold, Diamond, Candy)
+    local market = game:GetService("MarketplaceService")
+    local old; old = hookmetamethod(market, "__index", function(self, key)
+        if key == "UserOwnsGamePassAsync" or key == "PlayerOwnsAsset" then
+            return function() return true end
+        end
+        return old(self, key)
+    end)
+
+    -- Schutz-Zusatz: Falls das Spiel Barrieren nutzt, werden diese zusätzlich abgeschaltet
+    while task.wait(2) do
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and (obj.Name:find("Gate") or obj.Name:find("VIP") or obj.Name:find("Border") or obj.Name:find("Barrier")) then
+                obj.CanCollide = false
+                obj.Transparency = 0.8
+            end
+            if obj:IsA("Script") or obj:IsA("LocalScript") then
+                if obj.Name:find("Kick") or obj.Name:find("Kill") or obj.Name:find("CheckPass") then
+                    obj.Disabled = true
+                end
+            end
+        end
+    end
+end)
+
+-- VERBESSERTES TEMPO SYSTEM
+runService.RenderStepped:Connect(function()
     local val = tonumber(SpeedInput.Text)
     if val and player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = val end
+        if hum and hum.WalkSpeed ~= val then 
+            hum.WalkSpeed = val 
+        end
     end
 end)
 
@@ -160,10 +189,9 @@ runService.Stepped:Connect(function()
     end
 end)
 
--- DAS ORIGINALE FLY SYSTEM (Absolut fehlerfrei eingebunden)
+-- FLY SYSTEM (Original)
 local flying = false
 local bv, bg
-
 ToggleFlyBtn.MouseButton1Click:Connect(function()
     local char = player.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -174,25 +202,21 @@ ToggleFlyBtn.MouseButton1Click:Connect(function()
     ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (WASD)"
     
     if flying then
-        bv = Instance.new("BodyVelocity")
+        bv = Instance.new("BodyVelocity", hrp)
         bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
         bv.Velocity = Vector3.new(0, 0.1, 0)
-        bv.Parent = hrp
         
-        bg = Instance.new("BodyGyro")
+        bg = Instance.new("BodyGyro", hrp)
         bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
         bg.CFrame = hrp.CFrame
-        bg.Parent = hrp
         
         task.spawn(function()
             while flying and task.wait() do
-                if player.Character and hrp and hum then
-                    local speed = tonumber(FlySpeedInput.Text) or 50
-                    bv.Velocity = hum.MoveDirection * speed
-                    bg.CFrame = hrp.CFrame
-                    if hum.MoveDirection == Vector3.new(0,0,0) then
-                        bv.Velocity = Vector3.new(0, 0.1, 0)
-                    end
+                local speed = tonumber(FlySpeedInput.Text) or 50
+                bv.Velocity = hum.MoveDirection * speed
+                bg.CFrame = hrp.CFrame
+                if hum.MoveDirection == Vector3.new(0,0,0) then
+                    bv.Velocity = Vector3.new(0, 0.1, 0)
                 end
             end
         end)
