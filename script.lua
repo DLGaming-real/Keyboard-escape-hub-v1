@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (RESTORED)
+-- Keyboard escape hub v1 (FULLY FIXED)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -66,15 +66,23 @@ styleButton(ToggleAntiAfkBtn, "Anti-AFK: Inaktiv", 260, Color3.fromRGB(22, 163, 
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
 
--- Speed
+-- REPARIERTES TEMPO
 ApplySpeedBtn.MouseButton1Click:Connect(function()
     local char = player.Character
     if char and char:FindFirstChild("Humanoid") then
-        char.Humanoid.WalkSpeed = tonumber(SpeedInput.Text) or 16
+        local targetSpeed = tonumber(SpeedInput.Text) or 16
+        char.Humanoid.WalkSpeed = targetSpeed
+        
+        -- Verhindert, dass das Spiel die Geschwindigkeit sofort wieder zurücksetzt
+        char.Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+            if char.Humanoid.WalkSpeed ~= targetSpeed then
+                char.Humanoid.WalkSpeed = targetSpeed
+            end
+        end)
     end
 end)
 
--- Click TP (Wieder normal über Klick)
+-- Click TP
 local clickTpEnabled = false
 ToggleClickTpBtn.MouseButton1Click:Connect(function()
     clickTpEnabled = not clickTpEnabled
@@ -90,7 +98,7 @@ mouse.Button1Down:Connect(function()
     end
 end)
 
--- Unsichtbarkeit (Original-Zustand gelassen)
+-- Unsichtbarkeit
 local invisible = false
 ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     local char = player.Character
@@ -107,7 +115,7 @@ ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Anti AFK (Originale, funktionierende Logik)
+-- REPARIERTES ANTI-AFK
 local antiAfk = false
 ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
     antiAfk = not antiAfk
@@ -117,15 +125,50 @@ end)
 player.Idled:Connect(function()
     if antiAfk then
         local virtualUser = game:GetService("VirtualUser")
-        virtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-        wait(1)
-        virtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        virtualUser:CaptureController()
+        virtualUser:ClickButton2(Vector2.new(0,0))
     end
 end)
 
--- Fly Platzhalter
+-- REPARIERTES FLIEGEN (Mit FlySpeed-Erkennung)
 local flying = false
+local flyBodyGyro, flyBodyVelocity
 ToggleFlyBtn.MouseButton1Click:Connect(function()
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    
     flying = not flying
     ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (Speed links eintragen)"
+    
+    if flying then
+        flyBodyGyro = Instance.new("BodyGyro")
+        flyBodyGyro.P = 9e4
+        flyBodyGyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+        flyBodyGyro.cframe = hrp.CFrame
+        flyBodyGyro.Parent = hrp
+        
+        flyBodyVelocity = Instance.new("BodyVelocity")
+        flyBodyVelocity.velocity = Vector3.new(0, 0.1, 0)
+        flyBodyVelocity.maxForce = Vector3.new(9e9, 9e9, 9e9)
+        flyBodyVelocity.Parent = hrp
+        
+        local camera = workspace.CurrentCamera
+        spawn(function()
+            while flying and task.wait() do
+                if char and char:FindFirstChild("Humanoid") then
+                    local speed = tonumber(FlySpeedInput.Text) or 50
+                    local moveDirection = char.Humanoid.MoveDirection
+                    flyBodyVelocity.velocity = moveDirection * speed
+                    flyBodyGyro.cframe = camera.CFrame
+                    if moveDirection == Vector3.new(0,0,0) then
+                        flyBodyVelocity.velocity = Vector3.new(0, 0.1, 0)
+                    end
+                end
+            end
+        end)
+    else
+        if flyBodyGyro then flyBodyGyro:Destroy() end
+        if flyBodyVelocity then flyBodyVelocity:Destroy() end
+    end
 end)
