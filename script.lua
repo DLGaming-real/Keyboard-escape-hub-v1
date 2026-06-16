@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (FINAL STABLE VERSION)
+-- Keyboard escape hub v1 (STUDIO FLY & INSTANT SPEED EDITION)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -12,7 +12,7 @@ MainFrame.Name = "KeyboardEscapeHub"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
 MainFrame.Position = UDim2.new(0.3, 0, 0.1, 0)
-MainFrame.Size = UDim2.new(0, 320, 0, 390) -- Genug Platz, damit kein Button verschwindet!
+MainFrame.Size = UDim2.new(0, 320, 0, 390)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
@@ -77,7 +77,7 @@ local function styleElement(el, yPos, color)
     el.TextSize = 14
 end
 
--- 1. TEMPO (Eingabe ändert sofort)
+-- 1. TEMPO (Direkt-Erkennung beim Tippen über RunService)
 styleElement(SpeedInput, 80, Color3.fromRGB(51, 65, 85))
 SpeedInput.Text = "16"
 SpeedInput.PlaceholderText = "Tempo..."
@@ -92,9 +92,9 @@ SpeedLabel.Font = Enum.Font.SourceSansBold
 SpeedLabel.TextSize = 12
 SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- 2. FLY BUTTON + LINKS EINGABEFELD
+-- 2. FLY BUTTON (Roblox Studio / Notruf Hamburg Style)
 styleElement(ToggleFlyBtn, 140, Color3.fromRGB(14, 165, 233))
-ToggleFlyBtn.Text = "Fliegen (WASD)"
+ToggleFlyBtn.Text = "Fliegen (Studio Modus)"
 
 FlySpeedInput.Parent = ToggleFlyBtn
 FlySpeedInput.Size = UDim2.new(0.3, 0, 1, 0)
@@ -119,21 +119,24 @@ ToggleAntiAfkBtn.Text = "Anti-AFK (Laufband): AUS"
 
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
+local uis = game:GetService("UserInputService")
+local runService = game:GetService("RunService")
 
 -- GUI Logik
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- TEMPO EVENT
-SpeedInput:GetPropertyChangedSignal("Text"):Connect(function()
+-- TEMPO FIX: Erzwingt die Geschwindigkeit dauerhaft, sobald eine Zahl in der Box steht
+runService.RenderStepped:Connect(function()
     local val = tonumber(SpeedInput.Text)
-    if val and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
-        player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = val
+    if val and player.Character then
+        local hum = player.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum.WalkSpeed = val end
     end
 end)
 
--- CLICK TP EVENT
+-- CLICK TP
 local clickTpEnabled = false
 ToggleClickTpBtn.MouseButton1Click:Connect(function()
     clickTpEnabled = not clickTpEnabled
@@ -146,7 +149,7 @@ mouse.Button1Down:Connect(function()
     end
 end)
 
--- UNSICHTBAR EVENT
+-- UNSICHTBAR
 local invisible = false
 ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     if player.Character then
@@ -160,9 +163,8 @@ ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- FLY EVENT (WASD)
+-- ROBLOX STUDIO FLY (Blickrichtungs-Fliegen ohne Ruckeln)
 local flying = false
-local bv, bg
 ToggleFlyBtn.MouseButton1Click:Connect(function()
     local char = player.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -170,40 +172,46 @@ ToggleFlyBtn.MouseButton1Click:Connect(function()
     if not hrp or not hum then return end
     
     flying = not flying
-    ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (WASD)"
+    ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (Studio Modus)"
     
     if flying then
-        bv = Instance.new("BodyVelocity")
-        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-        bv.Velocity = Vector3.new(0, 0.1, 0)
-        bv.Parent = hrp
-        
-        bg = Instance.new("BodyGyro")
-        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-        bg.CFrame = hrp.CFrame
-        bg.Parent = hrp
+        hum.PlatformStand = true -- Schaltet die normale Roblox-Physik ab
         
         task.spawn(function()
-            while flying do
-                task.wait(0.05)
-                if player.Character and hrp and hum then
+            while flying and task.wait() do
+                if player.Character and hrp then
                     local speed = tonumber(FlySpeedInput.Text) or 50
-                    if hum.MoveDirection.Magnitude > 0 then
-                        bv.Velocity = hum.MoveDirection * speed
-                    else
-                        bv.Velocity = Vector3.new(0, 0.1, 0)
+                    local camera = workspace.CurrentCamera
+                    local moveDirection = Vector3.new(0,0,0)
+                    
+                    -- Richtung exakt nach Kamera-Blickwinkel berechnen
+                    if uis:IsKeyDown(Enum.KeyCode.W) then
+                        moveDirection = moveDirection + camera.CFrame.LookVector
                     end
-                    bg.CFrame = hrp.CFrame
+                    if uis:IsKeyDown(Enum.KeyCode.S) then
+                        moveDirection = moveDirection - camera.CFrame.LookVector
+                    end
+                    if uis:IsKeyDown(Enum.KeyCode.A) then
+                        moveDirection = moveDirection - camera.CFrame.RightVector
+                    end
+                    if uis:IsKeyDown(Enum.KeyCode.D) then
+                        moveDirection = moveDirection + camera.CFrame.RightVector
+                    end
+                    
+                    -- Charakter sanft per CFrame im Raum bewegen (Wie im Studio)
+                    if moveDirection.Magnitude > 0 then
+                        hrp.CFrame = CFrame.new(hrp.Position + (moveDirection.Unit * (speed / 10)), hrp.Position + camera.CFrame.LookVector)
+                    end
+                    hrp.Velocity = Vector3.new(0,0,0) -- Schwerkraft komplett ausschalten
                 end
             end
         end)
     else
-        if bv then bv:Destroy() end
-        if bg then bg:Destroy() end
+        if hum then hum.PlatformStand = false end -- Aktiviert die normale Bewegung wieder
     end
 end)
 
--- ANTI AFK EVENT
+-- ANTI AFK LAUFBAND
 local antiAfk = false
 local currentTrack
 ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
