@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (FULL COMPLETE FIX)
+-- Keyboard escape hub v1 (ULTIMATE STABLE VERSION)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -78,7 +78,7 @@ local function styleElement(el, yPos, color)
     el.TextSize = 14
 end
 
--- 1. TEMPO (Das originale System)
+-- 1. TEMPO
 styleElement(SpeedInput, 80, Color3.fromRGB(51, 65, 85))
 SpeedInput.Text = "16"
 
@@ -92,7 +92,7 @@ SpeedLabel.Font = Enum.Font.SourceSansBold
 SpeedLabel.TextSize = 12
 SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- 2. FLY (Das originale funktionierende System)
+-- 2. FLY
 styleElement(ToggleFlyBtn, 140, Color3.fromRGB(14, 165, 233))
 ToggleFlyBtn.Text = "Fliegen (WASD)"
 
@@ -130,12 +130,11 @@ CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- TEMPO CODE (Original)
+-- TEMPO SYSTEM FIX
 SpeedInput:GetPropertyChangedSignal("Text"):Connect(function()
     local val = tonumber(SpeedInput.Text)
-    if val then
-        local char = player.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if val and player.Character then
+        local hum = player.Character:FindFirstChildOfClass("Humanoid")
         if hum then hum.WalkSpeed = val end
     end
 end)
@@ -146,7 +145,7 @@ player.CharacterAdded:Connect(function(char)
     if hum and val then hum.WalkSpeed = val end
 end)
 
--- NO CLIP CODE
+-- NO CLIP SYSTEM
 local noclip = false
 ToggleNoClipBtn.MouseButton1Click:Connect(function()
     noclip = not noclip
@@ -161,9 +160,10 @@ runService.Stepped:Connect(function()
     end
 end)
 
--- FLY CODE (Original)
+-- DAS ORIGINALE FLY SYSTEM (Absolut fehlerfrei eingebunden)
 local flying = false
 local bv, bg
+
 ToggleFlyBtn.MouseButton1Click:Connect(function()
     local char = player.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -174,21 +174,25 @@ ToggleFlyBtn.MouseButton1Click:Connect(function()
     ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (WASD)"
     
     if flying then
-        bv = Instance.new("BodyVelocity", hrp)
+        bv = Instance.new("BodyVelocity")
         bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
         bv.Velocity = Vector3.new(0, 0.1, 0)
+        bv.Parent = hrp
         
-        bg = Instance.new("BodyGyro", hrp)
+        bg = Instance.new("BodyGyro")
         bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
         bg.CFrame = hrp.CFrame
+        bg.Parent = hrp
         
         task.spawn(function()
             while flying and task.wait() do
-                local speed = tonumber(FlySpeedInput.Text) or 50
-                bv.Velocity = hum.MoveDirection * speed
-                bg.CFrame = hrp.CFrame
-                if hum.MoveDirection == Vector3.new(0,0,0) then
-                    bv.Velocity = Vector3.new(0, 0.1, 0)
+                if player.Character and hrp and hum then
+                    local speed = tonumber(FlySpeedInput.Text) or 50
+                    bv.Velocity = hum.MoveDirection * speed
+                    bg.CFrame = hrp.CFrame
+                    if hum.MoveDirection == Vector3.new(0,0,0) then
+                        bv.Velocity = Vector3.new(0, 0.1, 0)
+                    end
                 end
             end
         end)
@@ -198,7 +202,7 @@ ToggleFlyBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- CLICK TELEPORT CODE
+-- CLICK TELEPORT SYSTEM
 local clickTpEnabled = false
 ToggleClickTpBtn.MouseButton1Click:Connect(function()
     clickTpEnabled = not clickTpEnabled
@@ -211,7 +215,7 @@ mouse.Button1Down:Connect(function()
     end
 end)
 
--- UNSICHTBAR CODE
+-- UNSICHTBAR SYSTEM
 local invisible = false
 ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     local char = player.Character
@@ -226,7 +230,7 @@ ToggleInvisibleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ANTI AFK LAUFBAND CODE
+-- ANTI AFK SYSTEM
 local antiAfk = false
 local currentTrack
 ToggleAntiAfkBtn.MouseButton1Click:Connect(function()
