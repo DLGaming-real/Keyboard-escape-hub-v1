@@ -1,4 +1,4 @@
--- Keyboard escape hub v1 (PERFECT CLASSIC EDITION)
+-- Keyboard escape hub v1 (THE TRUE WORK FIX)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -74,7 +74,7 @@ local function styleElement(el, yPos, color)
     el.TextSize = 14
 end
 
--- 1. TEMPO (Sofortige Erkennung beim Tippen)
+-- 1. TEMPO
 styleElement(SpeedInput, 80, Color3.fromRGB(51, 65, 85))
 SpeedInput.Text = "16"
 
@@ -87,7 +87,7 @@ SpeedLabel.BackgroundTransparency = 1
 SpeedLabel.Font = Enum.Font.SourceSansBold
 SpeedLabel.TextSize = 12
 
--- 2. FLY (Das gute, klassische WASD-Fliegen)
+-- 2. FLY
 styleElement(ToggleFlyBtn, 140, Color3.fromRGB(14, 165, 233))
 ToggleFlyBtn.Text = "Fliegen (WASD)"
 
@@ -100,7 +100,7 @@ FlySpeedInput.Text = "70"
 FlySpeedInput.Font = Enum.Font.SourceSans
 FlySpeedInput.TextSize = 14
 
--- 3. NO CLIP (Als eigener Button, komplett getrennt)
+-- 3. NO CLIP
 styleElement(ToggleNoClipBtn, 190, Color3.fromRGB(219, 39, 119))
 ToggleNoClipBtn.Text = "No Clip (Durch Wände): AUS"
 
@@ -120,25 +120,26 @@ local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
 local runService = game:GetService("RunService")
 
+-- Sichere Charakter-Erkennung für Mobilgeräte
+local function getChar()
+    return player.Character or player.CharacterAdded:Wait()
+end
+
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
 
--- TEMPO SYSTEM
+-- TEMPO SYSTEM (Erzwingt es jetzt unblockbar beim Tippen)
 SpeedInput:GetPropertyChangedSignal("Text"):Connect(function()
     local val = tonumber(SpeedInput.Text)
-    if val and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
-        player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = val
+    if val then
+        local char = getChar()
+        local hum = char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 5)
+        if hum then hum.WalkSpeed = val end
     end
 end)
 
-player.CharacterAdded:Connect(function(char)
-    local hum = char:WaitForChild("Humanoid", 5)
-    local val = tonumber(SpeedInput.Text)
-    if hum and val then hum.WalkSpeed = val end
-end)
-
--- NO CLIP SYSTEM
+-- NO CLIP
 local noclip = false
 ToggleNoClipBtn.MouseButton1Click:Connect(function()
     noclip = not noclip
@@ -146,45 +147,44 @@ ToggleNoClipBtn.MouseButton1Click:Connect(function()
 end)
 
 runService.Stepped:Connect(function()
-    if noclip and player.Character then
-        for _, part in pairs(player.Character:GetDescendants()) do
-            if part:IsA("BasePart") then part.CanCollide = false end
+    if noclip then
+        local char = player.Character
+        if char then
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then part.CanCollide = false end
+            end
         end
     end
 end)
 
--- DAS ALTE, PERFEKTE CLASSIC FLY (Mit BodyVelocity und BodyGyro)
+-- DAS ORIGINALE, ALTE FLY (Exakt die Version von ganz oben!)
 local flying = false
 local bv, bg
 ToggleFlyBtn.MouseButton1Click:Connect(function()
-    local char = player.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    local char = getChar()
+    local hrp = char:FindFirstChild("HumanoidRootPart") or char:WaitForChild("HumanoidRootPart", 5)
+    local hum = char:FindFirstChildOfClass("Humanoid")
     if not hrp or not hum then return end
     
     flying = not flying
     ToggleFlyBtn.Text = flying and "Fliegen: AN" or "Fliegen (WASD)"
     
     if flying then
-        bv = Instance.new("BodyVelocity")
+        bv = Instance.new("BodyVelocity", hrp)
         bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
         bv.Velocity = Vector3.new(0, 0.1, 0)
-        bv.Parent = hrp
         
-        bg = Instance.new("BodyGyro")
+        bg = Instance.new("BodyGyro", hrp)
         bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
         bg.CFrame = hrp.CFrame
-        bg.Parent = hrp
         
         task.spawn(function()
             while flying and task.wait() do
-                if player.Character and hrp and hum then
-                    local speed = tonumber(FlySpeedInput.Text) or 50
-                    bv.Velocity = hum.MoveDirection * speed
-                    bg.CFrame = hrp.CFrame
-                    if hum.MoveDirection == Vector3.new(0,0,0) then
-                        bv.Velocity = Vector3.new(0, 0.1, 0)
-                    end
+                local speed = tonumber(FlySpeedInput.Text) or 50
+                bv.Velocity = hum.MoveDirection * speed
+                bg.CFrame = hrp.CFrame
+                if hum.MoveDirection == Vector3.new(0,0,0) then
+                    bv.Velocity = Vector3.new(0, 0.1, 0)
                 end
             end
         end)
@@ -202,17 +202,21 @@ ToggleClickTpBtn.MouseButton1Click:Connect(function()
 end)
 
 mouse.Button1Down:Connect(function()
-    if clickTpEnabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p + Vector3.new(0, 3, 0))
+    if clickTpEnabled then
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            char.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p + Vector3.new(0, 3, 0))
+        end
     end
 end)
 
 -- UNSICHTBAR
 local invisible = false
 ToggleInvisibleBtn.MouseButton1Click:Connect(function()
-    if player.Character then
+    local char = player.Character
+    if char then
         invisible = not invisible
-        for _, part in pairs(player.Character:GetDescendants()) do
+        for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") or part:IsA("Decal") then
                 if part.Name ~= "HumanoidRootPart" then part.Transparency = invisible and 1 or 0 end
             end
