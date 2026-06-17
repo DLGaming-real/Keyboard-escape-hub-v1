@@ -92,10 +92,19 @@ SpeedLabel.Font = Enum.Font.SourceSansBold
 SpeedLabel.TextSize = 12
 SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- 2. FLY
-styleElement(ToggleFlyBtn, 140, Color3.fromRGB(14, 165, 233))
-ToggleFlyBtn.Text = "Fliegen (WASD)"
+-- Professioneller Fly Button
+ToggleFlyBtn.Parent = MainFrame
+ToggleFlyBtn.Position = UDim2.new(0.1, 0, 0.42, 0)
+ToggleFlyBtn.Size = UDim2.new(0.8, 0, 0, 40)
+ToggleFlyBtn.Text = "Fliegen: AUS"
+ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(225, 29, 72)
+ToggleFlyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleFlyBtn.Font = Enum.Font.SourceSansBold
 
+-- NEU: Auto-Rebirth Button
+ToggleRebirthBtn.Parent = MainFrame
+ToggleRebirthBtn.Position = UDim2.new(0.1, 0, 0.58, 0)
+ToggleRebirthBtn.Size = UDim2.new(0.8, 0, 0, 40)
 FlySpeedInput.Parent = ToggleFlyBtn
 FlySpeedInput.Size = UDim2.new(0.3, 0, 1, 0)
 FlySpeedInput.Position = UDim2.new(-0.35, 0, 0, 0)
